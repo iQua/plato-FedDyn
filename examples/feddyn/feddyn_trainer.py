@@ -4,40 +4,12 @@ from plato.config import Config
 from plato.trainers import basic
 
 import copy
-import logging
-import multiprocessing as mp
-import os
-import pickle
-import re
 import time
 import numpy as np
 class Trainer(basic.Trainer):
 
     def perform_forward_and_backward_passes(self, config, examples, labels, alpha_coef, avg_mdl_param, local_grad_vector):
-        """Perform forward and backward passes in the training loop.
-
-        Arguments:
-        config: the configuration.
-        examples: data samples in the current batch.
-        labels: labels in the current batch.
-
-        Returns: loss values after the current batch has been processed.
-        """
-        # self.optimizer.zero_grad()
-
-        # outputs = self.model(examples)
-
-        # loss = self._loss_criterion(outputs, labels)
-        # self._loss_tracker.update(loss, labels.size(0))
-
-        # if "create_graph" in config:
-        #     loss.backward(create_graph=config["create_graph"])
-        # else:
-        #     loss.backward()
-
-        # self.optimizer.step()
-
-        # return loss
+        """Perform forward and backward passes in the training loop. """
 
         model = self.model.to(self.device)
         loss_fn = torch.nn.CrossEntropyLoss(reduction='sum')
@@ -73,7 +45,6 @@ class Trainer(basic.Trainer):
         """The default training loop when a custom training loop is not supplied."""
         batch_size = config["batch_size"]
         self.sampler = sampler
-        tic = time.perf_counter()
 
         self.run_history.reset()
 
