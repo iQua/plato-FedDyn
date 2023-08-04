@@ -10,6 +10,14 @@ python examples/catalyst/catalyst_example.py -c examples/catalyst/catalyst_fedav
 ```
 ````
 
+````{admonition} **FedDyn**
+FedDyn is proposed to provide communication savings by dynamically updating each participating device's regularizer in each round of training.
+
+```shell
+python examples/feddyn/feddyn.py -c examples/feddyn/feddyn_MNIST_lenet5.yml
+```
+````
+
 ````{admonition} **FedProx**
 To better handle system heterogeneity, the FedProx algorithm introduced a proximal term in the optimizer used by local training on the clients. It has been quite widely cited and compared with in the federated learning literature.
 
