@@ -13,7 +13,7 @@ import time
 import numpy as np
 class Trainer(basic.Trainer):
 
-    def perform_forward_and_backward_passes(self, config, examples, labels, alpha_coef):
+    def perform_forward_and_backward_passes(self, config, examples, labels, alpha_coef, avg_mdl_param ):
         """Perform forward and backward passes in the training loop.
 
         Arguments:
@@ -38,14 +38,11 @@ class Trainer(basic.Trainer):
         # self.optimizer.step()
 
         # return loss
-        avg_mdl_param = config["parameters"]["avg_mdl_param"]
         local_grad_vector = config["parameters"]["local_grad_vector"]
 
         model = self.model.to(self.device)
         loss_fn = torch.nn.CrossEntropyLoss(reduction='sum')
         
-        epoch_loss = 0
-
         self.optimizer.zero_grad()
 
         batch_x = examples.to(self.device)
@@ -74,7 +71,7 @@ class Trainer(basic.Trainer):
         return loss
     
 
-     def train_model(self, config, trainset, sampler, **kwargs):
+    def train_model(self, config, trainset, sampler, **kwargs):
         """The default training loop when a custom training loop is not supplied."""
         batch_size = config["batch_size"]
         self.sampler = sampler
@@ -115,13 +112,16 @@ class Trainer(basic.Trainer):
 
                 examples, labels = examples.to(self.device), labels.to(self.device)
 
+                cld_mdl_param = copy.deepcopy(self.model_state_dict)
+                cld_mdl_param_tensor = torch.tensor(cld_mdl_param, dtype=torch.float32, device=self.device)
+
                 clnt_y = labels;
                 weight_list = np.asarray([len(clnt_y[i]) for i in range(n_clnt)])
                 weight_list = weight_list / np.sum(weight_list) * n_clnt
                 alpha_coef_adpt = alpha_coef / weight_list[self.client_id]
 
                 loss = self.perform_forward_and_backward_passes(
-                    config, examples, labels, alpha_coef_adpt
+                    config, examples, labels, alpha_coef_adpt, cld_mdl_param_tensor
                 )
 
                 self.train_step_end(config, batch=batch_id, loss=loss)
