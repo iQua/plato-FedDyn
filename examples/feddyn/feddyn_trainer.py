@@ -4,7 +4,7 @@ from plato.config import Config
 from plato.trainers import basic
 
 import copy
-import time
+import os
 import numpy as np
 class Trainer(basic.Trainer):
 
@@ -65,8 +65,8 @@ class Trainer(basic.Trainer):
         self.model.train()
 
         total_epochs = config["epochs"]
-        n_clnt = config["total_clients"]
-        alpha_coef = config["alpha_coef"]
+        n_clnt = Config().clients.total_clients
+        alpha_coef = Config().parameters.alpha_coef
 
         for self.current_epoch in range(1, total_epochs + 1):
             self._loss_tracker.reset()
@@ -80,20 +80,29 @@ class Trainer(basic.Trainer):
                 )
 
                 examples, labels = examples.to(self.device), labels.to(self.device)
+                
+                cld_mdl_param = []
+                if(self.model_state_dict):
+                    cld_mdl_param = copy.deepcopy(self.model_state_dict)
+                cld_mdl_param_tensor = torch.tensor(cld_mdl_param, dtype=torch.float32, device=self.device)
+
 
                 model_path = Config().params["model_path"] 
                 filename = f"{model_path}_{self.client_id}.pth"
-                local_model = torch.load(filename)
-                local_param_list = copy.deepcopy(local_model.model_state_dict)
+                local_param_list = []
+                if(self.model_state_dict):
+                    local_param_list = np.zeros(len(self.model_state_dict)).astype('float32')
+                if(os.path.exists(filename)):
+                    local_model = torch.load(filename)
+                    local_param_list = copy.deepcopy(local_model.model_state_dict)
                 local_param_list_tensor = torch.tensor(local_param_list, dtype=torch.float32, device=self.device)
 
-                cld_mdl_param = copy.deepcopy(self.model_state_dict)
-                cld_mdl_param_tensor = torch.tensor(cld_mdl_param, dtype=torch.float32, device=self.device)
 
                 clnt_y = labels;
-                weight_list = np.asarray([len(clnt_y[i]) for i in range(n_clnt)])
-                weight_list = weight_list / np.sum(weight_list) * n_clnt
-                alpha_coef_adpt = alpha_coef / weight_list[self.client_id]
+                weight_list = clnt_y / np.sum(clnt_y) * n_clnt
+                weight_list = weight_list.cpu().numpy()
+                alpha_coef_adpt = alpha_coef / np.where(weight_list != 0, weight_list, 1.0)
+                
                 loss = self.perform_forward_and_backward_passes(
                     config, examples, labels, alpha_coef_adpt, cld_mdl_param_tensor, local_param_list_tensor
                 )
