@@ -1,10 +1,12 @@
 from plato.servers import fedavg
 from plato.clients import simple
 from plato.trainers import basic
-
+from transformers import GPT2ForQuestionAnswering
+import GPT_trainer
 def main():
-    """A Plato federated learning training session using FedProx."""
-    trainer = basic.Trainer
+    model = GPT2ForQuestionAnswering.from_pretrained("gpt2")
+
+    trainer = GPT_trainer.Trainer(model=model)
     client = simple.Client(trainer=trainer)
     server = fedavg.Server(trainer=trainer)
     server.run(client)

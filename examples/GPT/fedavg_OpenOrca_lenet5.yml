@@ -63,8 +63,7 @@ trainer:
     epochs: 20
     batch_size: 10
     optimizer: SGD
-    model_type: https://huggingface.co/docs/transformers/model_doc/gpt2
-    model_name: lenet5
+    model_name: gpt2
 
 algorithm:
     # Aggregation algorithm
