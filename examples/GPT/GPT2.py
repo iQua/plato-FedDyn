@@ -4,9 +4,9 @@ from plato.trainers import basic
 from transformers import GPT2ForQuestionAnswering
 import GPT_trainer
 def main():
-    model = GPT2ForQuestionAnswering.from_pretrained("gpt2")
+    #model = GPT2ForQuestionAnswering.from_pretrained("gpt2")
 
-    trainer = GPT_trainer.Trainer(model=model)
+    trainer = GPT_trainer.Trainer()
     client = simple.Client(trainer=trainer)
     server = fedavg.Server(trainer=trainer)
     server.run(client)

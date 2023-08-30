@@ -11,9 +11,9 @@ from plato.callbacks.handler import CallbackHandler
 from plato.callbacks.trainer import LogProgressCallback
 from plato.config import Config 
 from plato.models import registry as models_registry
-from plato.trainers import basic,base, loss_criterion, lr_schedulers, optimizers, tracking
+from plato.trainers import basic,base, loss_criterion, lr_schedulers, optimizers, tracking, huggingface
 from transformers import AutoTokenizer,GPT2ForQuestionAnswering
-class Trainer(basic.Trainer):
+class Trainer(huggingface.Trainer):
     def __init__(self, model=None, callbacks=None):
         """Initializing the trainer with the provided model.
 
