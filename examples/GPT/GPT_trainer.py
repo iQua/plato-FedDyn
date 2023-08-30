@@ -1,11 +1,50 @@
-import torch
-from plato.config import Config
-from plato.trainers import basic
 import copy
+import logging
+import multiprocessing as mp
 import os
-import numpy as np
-from transformers import AutoTokenizer
+import pickle
+import re
+import time
+
+import torch
+from plato.callbacks.handler import CallbackHandler
+from plato.callbacks.trainer import LogProgressCallback
+from plato.config import Config 
+from plato.models import registry as models_registry
+from plato.trainers import basic,base, loss_criterion, lr_schedulers, optimizers, tracking
+from transformers import AutoTokenizer,GPT2ForQuestionAnswering
 class Trainer(basic.Trainer):
+    def __init__(self, model=None, callbacks=None):
+        """Initializing the trainer with the provided model.
+
+        Arguments:
+        model: The model to train.
+        callbacks: The callbacks that this trainer uses.
+        """
+        super().__init__(model=model)
+
+        self.training_start_time = time.time()
+        self.model_state_dict = None
+        self.current_round = 0
+
+        # Starting from the default trainer callback class, add all supplied trainer callbacks
+        self.callbacks = [LogProgressCallback]
+        if callbacks is not None:
+            self.callbacks.extend(callbacks)
+        self.callback_handler = CallbackHandler(self.callbacks)
+
+        # The run history of performance metrics
+        self.run_history = tracking.RunHistory()
+        self._loss_tracker = tracking.LossTracker()
+
+        self.model = GPT2ForQuestionAnswering.from_pretrained("gpt2")
+
+        self.train_loader = None
+        self.sampler = None
+        self._loss_criterion = None
+        self.optimizer = None
+        self.lr_scheduler = None
+        self.current_epoch = 0
 
     def perform_forward_and_backward_passes(self, config, examples, labels):
         """Perform forward and backward passes in the training loop.
