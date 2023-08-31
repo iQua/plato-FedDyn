@@ -2,13 +2,12 @@ from plato.servers import fedavg
 from plato.clients import simple
 from plato.trainers import basic
 from transformers import GPT2ForQuestionAnswering
-import GPT_trainer
+import GPT_trainer, GPTModelWrapper
 def main():
-    #model = GPT2ForQuestionAnswering.from_pretrained("gpt2")
-
+    model = GPTModelWrapper.GPTModelWrapper
     trainer = GPT_trainer.Trainer()
-    client = simple.Client(trainer=trainer)
-    server = fedavg.Server(trainer=trainer)
+    client = simple.Client(model=model)
+    server = fedavg.Server(model=model,trainer=trainer)
     server.run(client)
 
 
