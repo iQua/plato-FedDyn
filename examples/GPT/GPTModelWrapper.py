@@ -21,4 +21,4 @@ class GPTModelWrapper(nn.Module):
 
     def forward(self, feature):
         "Forward function."
-        return self.model(feature)
+        return self.model(feature.int())
